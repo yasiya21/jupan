@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -5,23 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>코딩선생님 - 재미있는 주판 알고리즘</title>
     
-    <!-- 필수 라이브러리 (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 1. Libraries (CDN) -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     
-    <!-- 아이콘 & 폰트 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 2. Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
-        * { font-family: 'Inter', 'Nanum Gothic', sans-serif; }
+        * { font-family: 'Inter', 'Nanum Gothic', sans-serif; -webkit-tap-highlight-color: transparent; }
         .bead-shadow { box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1); }
         .abacus-frame { border: 10px solid #451a03; border-radius: 2.5rem; }
         
-        /* 스크롤바 디자인 */
+        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -34,23 +35,44 @@
         .animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
     </style>
 </head>
-<body class="bg-sky-50 text-slate-800 selection:bg-indigo-100">
-    <div id="root">
-        <div class="min-h-screen flex items-center justify-center">
-            <div class="text-center">
-                <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p class="text-indigo-600 font-bold">주판 앱을 준비하고 있어요...</p>
-            </div>
-        </div>
-    </div>
+<body class="bg-indigo-50 text-slate-800">
+    <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useCallback, useMemo } = React;
+        const { useState, useEffect, useMemo, useCallback } = React;
         const { motion, AnimatePresence } = window.FramerMotion;
 
-        // --- 데이터 정의 ---
+        // --- Constants & Data ---
         const DECODING_TABLE = { 0: 'ㄱ', 1: 'ㄴ', 2: 'ㄷ', 3: 'ㄹ', 4: 'ㅁ', 5: 'ㅂ', 6: 'ㅅ', 7: 'ㅇ', 8: 'ㅈ', 9: 'ㅊ', 10: 'ㅋ', 11: 'ㅌ', 12: 'ㅍ', 13: 'ㅎ' };
         
+        const CIPHER_MISSION_POOL = [
+            {
+                finalWord: '알고리즘',
+                hint: '문제를 해결하기 위해 정해진 단계별 규칙이에요.',
+                problems: [
+                    { expression: '12 - 5', answer: 7, consonant: 'ㅇ' },
+                    { expression: '5 - 5', answer: 0, consonant: 'ㄱ' },
+                    { expression: '1 + 2', answer: 3, consonant: 'ㄹ' },
+                    { expression: '4 + 4', answer: 8, consonant: 'ㅈ' },
+                ]
+            }
+        ];
+
+        const SW_QUIZ_POOL = [
+            {
+                question: "주판의 '가름대'에 모인 알의 모양은 컴퓨터의 무엇과 같을까요?",
+                options: ["입력 장치", "처리 장치(CPU)", "출력 장치(모니터)", "저장 장치"],
+                correctIdx: 2,
+                explanation: "주판알의 모양은 계산 결과를 보여주므로 컴퓨터의 모니터와 같은 출력 장치 역할을 해요!"
+            },
+            {
+                question: "주판알을 움직이는 '손가락'은 컴퓨터의 어떤 부분에 해당하나요?",
+                options: ["입력 장치(마우스/키보드)", "저장 장치", "출력 장치", "전원 버튼"],
+                correctIdx: 0,
+                explanation: "손가락으로 숫자를 입력하므로 컴퓨터의 키보드나 마우스 같은 입력 장치와 같아요."
+            }
+        ];
+
         const LESSONS = [
             {
                 id: 'intro', title: '주판과 친해지기', description: '주판의 구조와 숫자를 읽는 법을 배워요.',
@@ -68,52 +90,30 @@
                 steps: [
                     { text: '이제 덧셈을 연습해볼까요? 2 + 2를 해봐요. 먼저 2를 놓으세요.', highlightColumn: 6, targetValue: 2 },
                     { text: '거기에 2를 더해볼까요?', highlightColumn: 6, targetValue: 4 },
-                    { text: '정답은 4! 아주 잘했어요.' },
-                    { text: '이번엔 5 + 3을 해봐요. 먼저 5를 놓으세요.', highlightColumn: 6, targetValue: 5 },
-                    { text: '이제 3을 더해보세요.', highlightColumn: 6, targetValue: 8 },
-                    { text: '정답은 8! 정말 빠르네요.' }
+                    { text: '정답은 4! 아주 잘했어요.' }
                 ]
             }
         ];
 
-        const SW_QUIZ_POOL = [
-            { question: "주판의 '가름대'에 모인 알의 모양은 컴퓨터의 무엇과 같을까요?", options: ["입력 장치", "처리 장치(CPU)", "출력 장치(모니터)", "저장 장치"], correctIdx: 2, explanation: "주판알의 모양은 계산 결과를 보여주므로 컴퓨터의 모니터와 같은 출력 장치 역할을 해요!" },
-            { question: "주판알을 움직이는 '손가락'은 컴퓨터의 어떤 부분에 해당하나요?", options: ["입력 장치(마우스/키보드)", "저장 장치", "출력 장치", "전원 버튼"], correctIdx: 0, explanation: "손가락으로 숫자를 입력하므로 컴퓨터의 키보드나 마우스 같은 입력 장치와 같아요." }
-        ];
-
-        // --- 유틸리티 함수 ---
-        const playSound = (type) => {
+        // --- Helpers ---
+        const playFanfare = () => {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioCtx();
                 const now = ctx.currentTime;
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
-                
-                if (type === 'victory') {
-                    [523, 659, 783, 1046].forEach((f, i) => {
-                        const s = now + (i * 0.15);
-                        setTimeout(() => {
-                            const o = ctx.createOscillator();
-                            const g = ctx.createGain();
-                            o.connect(g); g.connect(ctx.destination);
-                            o.frequency.setValueAtTime(f, s);
-                            g.gain.setValueAtTime(0.1, s);
-                            g.gain.exponentialRampToValueAtTime(0.01, s + 0.5);
-                            o.start(s); o.stop(s + 0.5);
-                        }, i * 150);
-                    });
-                } else {
-                    osc.frequency.setValueAtTime(type === 'click' ? 800 : 400, now);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now); osc.stop(now + 0.1);
-                }
-            } catch (e) {}
+                [523, 659, 783, 1046].forEach((f, i) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.frequency.setValueAtTime(f, now + i*0.15);
+                    g.gain.setValueAtTime(0.1, now + i*0.15);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i*0.15 + 0.5);
+                    o.start(now + i*0.15); o.stop(now + i*0.15 + 0.5);
+                });
+            } catch(e){}
         };
 
-        const speakValue = (val) => {
+        const speak = (val) => {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(val === 0 ? "영" : val.toString());
@@ -122,40 +122,45 @@
             }
         };
 
-        // --- 컴포넌트 ---
-        const Abacus = ({ columns, onBeadClick, highlight }) => (
-            <div className="abacus-frame bg-amber-900 p-6 shadow-2xl inline-block mx-auto transform hover:scale-[1.02] transition-transform duration-500">
-                <div className="flex gap-1 md:gap-3 bg-amber-800 p-3 rounded-xl relative">
-                    {/* 가름대 */}
-                    <div className="absolute left-0 right-0 h-4 bg-amber-950 z-10 top-[120px] shadow-inner">
-                        <div className="flex justify-around w-full h-full items-center px-4">
-                            {columns.map((_, i) => (
-                                <div key={i} className={`w-2 h-2 rounded-full ${i % 3 === 2 ? 'bg-white/60' : 'bg-transparent'}`} />
-                            ))}
-                        </div>
+        // --- Components ---
+        const Teacher = ({ message }) => (
+            <div className="flex flex-col md:flex-row items-center gap-6 p-6 bg-white rounded-3xl shadow-xl border-4 border-indigo-100 max-w-2xl mx-auto">
+                <div className="flex-shrink-0 text-center">
+                    <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center border-4 border-white shadow-md text-5xl">👩‍🏫</div>
+                    <p className="mt-2 text-sm font-black text-indigo-700">코딩선생님</p>
+                </div>
+                <div className="flex-grow">
+                    <div className="bg-white p-5 rounded-2xl border-2 border-orange-50 min-h-[80px] flex items-center">
+                        <p className="text-xl font-bold text-gray-700 leading-tight">{message}</p>
                     </div>
+                </div>
+            </div>
+        );
+
+        const Abacus = ({ columns, onBeadClick, highlight }) => (
+            <div className="abacus-frame bg-amber-900 p-6 shadow-2xl inline-block mx-auto transform transition-all duration-500">
+                <div className="flex gap-2 md:gap-4 bg-amber-800 p-3 rounded-xl relative">
+                    <div className="absolute left-0 right-0 h-4 bg-amber-950 z-10 top-[120px] shadow-inner"></div>
                     {columns.map((col, i) => (
-                        <div key={i} className={`relative flex flex-col items-center w-12 md:w-16 h-[400px] transition-all duration-300 ${highlight === i ? 'bg-yellow-400/20 ring-4 ring-yellow-400 rounded-xl' : ''}`}>
-                            <div className="absolute w-2 h-full bg-slate-400 rounded-full shadow-inner"></div>
-                            {/* 윗알 (5) */}
+                        <div key={i} className={`relative flex flex-col items-center w-12 md:w-16 h-[400px] transition ${highlight === i ? 'bg-yellow-400/20 ring-4 ring-yellow-400 rounded-xl scale-105' : ''}`}>
+                            <div className="absolute w-2.5 h-full bg-slate-400 rounded-full shadow-inner"></div>
                             <motion.button 
                                 onClick={() => onBeadClick(i, 'upper', col.upper === 0 ? 1 : 0)}
                                 animate={{ y: col.upper === 1 ? 80 : 0 }}
-                                className="absolute w-10 md:w-14 h-8 bg-blue-500 rounded-full z-20 bead-shadow border-b-4 border-blue-700 mt-2"
+                                className="absolute w-10 md:w-14 h-9 bg-blue-500 rounded-full z-20 bead-shadow border-b-4 border-blue-700 mt-2"
                             />
-                            {/* 아랫알 (1) */}
-                            <div className="mt-16 flex flex-col gap-2 relative">
+                            <div className="mt-16 flex flex-col gap-2 relative h-[240px]">
                                 {[0,1,2,3].map(bi => (
                                     <motion.button
                                         key={bi}
                                         onClick={() => onBeadClick(i, 'lower', bi < col.lower ? bi : bi + 1)}
-                                        animate={{ y: bi < col.lower ? -45 : 0 }}
-                                        className={`w-10 md:w-14 h-8 rounded-full bead-shadow border-b-4 ${['bg-green-500 border-green-700', 'bg-yellow-400 border-yellow-600', 'bg-orange-500 border-orange-700', 'bg-red-500 border-red-700'][bi]}`}
-                                        style={{ position: 'absolute', top: `${100 + bi * 45}px` }}
+                                        animate={{ y: bi < col.lower ? -48 : 0 }}
+                                        className={`absolute w-10 md:w-14 h-9 left-0 md:left-1 rounded-full bead-shadow border-b-4 z-20 ${['bg-green-500 border-green-700', 'bg-yellow-400 border-yellow-600', 'bg-orange-500 border-orange-700', 'bg-red-500 border-red-700'][bi]}`}
+                                        style={{ top: `${100 + bi * 45}px` }}
                                     />
                                 ))}
                             </div>
-                            <div className="absolute -bottom-10 text-white font-black text-xl md:text-2xl drop-shadow-md">{col.upper * 5 + col.lower}</div>
+                            <div className="absolute -bottom-10 text-white font-black text-2xl">{col.upper * 5 + col.lower}</div>
                         </div>
                     ))}
                 </div>
@@ -164,117 +169,87 @@
 
         function App() {
             const [mode, setMode] = useState('lessons');
-            const [columns, setColumns] = useState(Array(7).fill(0).map(() => ({upper:0, lower:0})));
-            const [lessonIdx, setLessonIdx] = useState(0);
-            const [stepIdx, setStepIdx] = useState(0);
-            const [isStepSuccess, setIsStepSuccess] = useState(false);
+            const [cols, setCols] = useState(Array(7).fill(0).map(() => ({upper:0, lower:0})));
+            const [lIdx, setLIdx] = useState(0);
+            const [sIdx, setSIdx] = useState(0);
+            const [isSuccess, setIsSuccess] = useState(false);
 
-            const handleBeadClick = (c, t, v) => {
-                const next = [...columns];
+            const handleBead = (c, t, v) => {
+                const next = [...cols];
                 next[c] = { ...next[c], [t]: v };
-                setColumns(next);
+                setCols(next);
                 
                 const val = next[c].upper * 5 + next[c].lower;
-                const total = next.reduce((a, x, i) => a + (x.upper * 5 + x.lower) * Math.pow(10, 6 - i), 0);
-                speakValue(total);
-                playSound('click');
+                speak(val);
 
-                const step = LESSONS[lessonIdx].steps[stepIdx];
+                const step = LESSONS[lIdx].steps[sIdx];
                 if (step.targetValue !== undefined && c === step.highlightColumn && val === step.targetValue) {
-                    setIsStepSuccess(true);
+                    setIsSuccess(true);
                     setTimeout(() => {
-                        setIsStepSuccess(false);
-                        if (stepIdx < LESSONS[lessonIdx].steps.length - 1) setStepIdx(s => s + 1);
-                        else { 
-                            playSound('victory');
-                            alert('축하합니다! 이번 단원을 완료했어요! ⭐');
-                            if (lessonIdx < LESSONS.length - 1) {
-                                setLessonIdx(lessonIdx + 1);
-                                setStepIdx(0);
-                                setColumns(Array(7).fill(0).map(() => ({upper:0, lower:0})));
-                            } else {
-                                setMode('end');
-                            }
+                        setIsSuccess(false);
+                        if (sIdx < LESSONS[lIdx].steps.length - 1) setSIdx(sIdx + 1);
+                        else {
+                            playFanfare();
+                            if (lIdx < LESSONS.length - 1) { 
+                                alert('축하합니다! 이번 단원을 완료했습니다. 🎓'); 
+                                setLIdx(lIdx + 1); setSIdx(0); 
+                                setCols(Array(7).fill(0).map(() => ({upper:0, lower:0})));
+                            } else setMode('end');
                         }
-                    }, 800);
+                    }, 1000);
                 }
             };
 
             return (
-                <div className="min-h-screen bg-sky-50 pb-12">
-                    {/* 헤더 */}
-                    <header className="bg-white p-6 shadow-sm border-b-2 border-sky-100 mb-8 overflow-hidden">
+                <div className="min-h-screen bg-indigo-50 pb-12">
+                    <header className="bg-white p-6 shadow-sm border-b-2 border-indigo-100 mb-8 overflow-hidden">
                         <div className="max-w-6xl mx-auto flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg"><i className="fa-solid fa-graduation-cap text-2xl"></i></div>
-                                <div>
-                                    <h1 className="text-xl md:text-2xl font-black text-indigo-900 leading-tight">코딩선생님</h1>
-                                    <p className="text-xs md:text-sm font-bold text-indigo-400">재미있는 주판 알고리즘</p>
-                                </div>
-                            </div>
-                            <button onClick={() => location.reload()} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition">
-                                <i className="fa-solid fa-house text-xl"></i>
-                            </button>
+                            <h1 className="text-2xl font-black text-indigo-900">주판 코딩선생님</h1>
+                            <button onClick={() => location.reload()} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 transition">처음으로</button>
                         </div>
                     </header>
 
-                    <main className="max-w-6xl mx-auto px-4">
-                        <AnimatePresence mode="wait">
-                            {mode === 'lessons' ? (
-                                <motion.div initial={{opacity:0}} animate={{opacity:1}} className="space-y-8">
-                                    {/* 대답창 (선생님) */}
-                                    <div className="bg-white p-6 rounded-3xl shadow-xl border-4 border-indigo-50 flex items-center gap-6 max-w-3xl mx-auto">
-                                        <div className="text-5xl md:text-6xl flex-shrink-0 animate-bounce-slow">👩‍🏫</div>
-                                        <div>
-                                            <p className="text-lg md:text-2xl font-black text-slate-700 leading-tight">
-                                                {LESSONS[lessonIdx].steps[stepIdx].text}
-                                            </p>
-                                        </div>
-                                    </div>
+                    <main className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="lg:col-span-3 space-y-6">
+                            <div className="bg-white p-6 rounded-3xl shadow-md border-2 border-indigo-50">
+                                <h3 className="font-black text-gray-800 mb-6">학습 순서</h3>
+                                <div className="space-y-3 font-bold">
+                                    {LESSONS.map((l, i) => (
+                                        <button key={i} onClick={() => { setLIdx(i); setSIdx(0); setCols(Array(7).fill(0).map(()=>({upper:0,lower:0}))) }} 
+                                            className={`w-full p-4 rounded-2xl text-left transition ${lIdx === i ? 'bg-orange-500 text-white shadow-lg' : 'bg-slate-50 text-slate-500'}`}>
+                                            {i+1}. {l.title}
+                                        </button>
+                                    ))}
+                                    <button className="w-full p-4 rounded-2xl bg-indigo-50 text-indigo-600 border-2 border-dashed border-indigo-200">3. SW 개념 퀴즈</button>
+                                    <button className="w-full p-4 rounded-2xl bg-amber-50 text-amber-700 border-2 border-dashed border-amber-200">4. 암호 해독 미션</button>
+                                </div>
+                            </div>
+                        </div>
 
-                                    {/* 주판 영역 */}
-                                    <div className="flex flex-col items-center gap-8 py-8">
+                        <div className="lg:col-span-9 flex flex-col items-center gap-8">
+                            <AnimatePresence mode="wait">
+                                {mode === 'lessons' ? (
+                                    <motion.div key="game" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="w-full flex flex-col items-center gap-8">
+                                        <Teacher message={LESSONS[lIdx].steps[sIdx].text} />
                                         <div className="relative">
-                                            <Abacus columns={columns} onBeadClick={handleBeadClick} highlight={LESSONS[lessonIdx].steps[stepIdx].highlightColumn} />
-                                            {isStepSuccess && (
-                                                <motion.div initial={{scale:0}} animate={{scale:1.5}} className="absolute inset-0 flex items-center justify-center pointer-events-none text-7xl z-50">
-                                                    ✨🎉🎓
-                                                </motion.div>
-                                            )}
+                                            <Abacus columns={cols} onBeadClick={handleBead} highlight={LESSONS[lIdx].steps[sIdx].highlightColumn} />
+                                            {isSuccess && <div className="absolute inset-0 flex items-center justify-center animate-bounce text-7xl pointer-events-none z-50">✨🎓</div>}
                                         </div>
-                                        
                                         <div className="flex gap-4">
-                                            <button onClick={() => setColumns(Array(7).fill(0).map(() => ({upper:0, lower:0})))} className="px-6 py-3 bg-white border-2 border-orange-200 text-orange-600 font-black rounded-2xl shadow-sm hover:bg-orange-50 transition">
-                                                <i className="fa-solid fa-rotate-left mr-2"></i> 주판 초기화
-                                            </button>
+                                            <button onClick={() => setCols(Array(7).fill(0).map(()=>({upper:0,lower:0})))} className="px-6 py-3 bg-white border-2 border-orange-200 text-orange-600 rounded-2xl font-black shadow-sm">주판 초기화</button>
                                         </div>
-                                    </div>
-                                    
-                                    {/* 하단 네비게이션 */}
-                                    <div className="flex justify-center items-center gap-6">
-                                        <button disabled={stepIdx === 0} onClick={() => setStepIdx(stepIdx-1)} className="w-16 h-16 bg-white border-2 border-indigo-100 rounded-2xl text-indigo-300 disabled:opacity-20 shadow-sm"><i className="fa-solid fa-chevron-left text-2xl"></i></button>
-                                        <div className="bg-white px-8 py-3 rounded-full font-black text-indigo-500 border border-indigo-100 shadow-inner">
-                                            {stepIdx + 1} / {LESSONS[lessonIdx].steps.length}
-                                        </div>
-                                        <button disabled={stepIdx === LESSONS[lessonIdx].steps.length - 1 || LESSONS[lessonIdx].steps[stepIdx].targetValue !== undefined} onClick={() => setStepIdx(stepIdx+1)} className="w-16 h-16 bg-white border-2 border-indigo-100 rounded-2xl text-indigo-300 disabled:opacity-20 shadow-sm"><i className="fa-solid fa-chevron-right text-2xl"></i></button>
-                                    </div>
-                                </motion.div>
-                            ) : (
-                                <motion.div initial={{scale:0.9, opacity:0}} animate={{scale:1, opacity:1}} className="max-w-2xl mx-auto bg-white p-12 rounded-[3.5rem] shadow-2xl text-center border-b-8 border-indigo-100">
-                                    <div className="w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center text-white mx-auto mb-8 shadow-xl rotate-3"><i className="fa-solid fa-award text-5xl"></i></div>
-                                    <h2 className="text-4xl font-black mb-6 text-slate-800">모든 과정을 완료했어요! 🎓</h2>
-                                    <p className="text-slate-500 mb-10 text-xl font-medium leading-relaxed">
-                                        축하합니다! 주판 알고리즘의 기초를 완벽하게 마스터했어요.<br/>컴퓨터처럼 생각하는 힘이 한층 더 강해졌을 거예요!
-                                    </p>
-                                    <button onClick={() => location.reload()} className="px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-slate-800 transition-all shadow-lg active:scale-95">처음으로 돌아가기</button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="end" initial={{scale:0.8, opacity:0}} animate={{scale:1, opacity:1}} className="max-w-2xl bg-white p-12 rounded-[3.5rem] shadow-2xl text-center border-b-8 border-indigo-100">
+                                        <div className="text-7xl mb-6">🏆</div>
+                                        <h2 className="text-4xl font-black mb-6">과정을 마쳤습니다!</h2>
+                                        <p className="text-slate-500 mb-10 text-xl font-medium leading-relaxed">컴퓨터의 기초 원리를 완벽하게 배웠어요!</p>
+                                        <button onClick={() => location.reload()} className="px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black text-xl hover:bg-slate-800 transition shadow-lg">다시 시작하기</button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </main>
-                    
-                    <footer className="mt-20 text-center text-slate-400 font-bold text-sm">
-                        &copy; 2026 주판 알고리즘 학습. 모든 권리 보유.
-                    </footer>
                 </div>
             );
         }
