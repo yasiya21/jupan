@@ -1,74 +1,13 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>코딩선생님 - 주판 알고리즘 에듀</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
-        body { font-family: 'Nanum Gothic', sans-serif; background-color: #f0f9ff; margin: 0; }
-        .bead { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border-bottom: 4px solid rgba(0,0,0,0.2); }
-        .teacher-anim { animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>코딩선생님 - 주판 알고리즘</title>
+  </head>
+  <body>
     <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const App = () => {
-            const [cols, setCols] = useState(Array(7).fill(0).map(() => ({ upper: 0, lower: 0 })));
-            useEffect(() => { if (window.lucide) lucide.createIcons(); }, []);
-            const handleBead = (i, type, val) => {
-                const next = [...cols];
-                next[i][type] = val;
-                setCols(next);
-            };
-            return (
-                <div className="min-h-screen p-4 flex flex-col items-center">
-                    <header className="w-full max-w-5xl bg-white p-6 rounded-3xl shadow-xl flex justify-between items-center mb-8 border-b-4 border-indigo-100">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-indigo-600 p-2 rounded-xl text-white shadow-lg"><i data-lucide="graduation-cap"></i></div>
-                            <h1 className="text-2xl font-black text-indigo-900">코딩선생님</h1>
-                        </div>
-                        <button onClick={() => location.reload()} className="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="rotate-ccw"></i></button>
-                    </header>
-                    <div className="w-full max-w-2xl bg-white p-6 rounded-3xl shadow-xl border-4 border-indigo-100 mb-10 flex gap-4 items-center">
-                        <div className="text-5xl teacher-anim flex-shrink-0">👩‍🏫</div>
-                        <div className="bg-indigo-50 p-4 rounded-2xl flex-grow shadow-inner">
-                            <p className="font-bold text-indigo-900">"반가워요! 주판알을 클릭해서 숫자를 만들어보세요!<br/><span className="text-indigo-500 text-sm font-normal underline">위쪽 알은 5, 아래쪽 알은 1씩 계산됩니다."</span></p>
-                        </div>
-                    </div>
-                    <div className="bg-[#451a03] p-8 rounded-[3rem] shadow-2xl border-[12px] border-[#2d1102] flex gap-4 relative">
-                        <div className="absolute left-0 right-0 h-4 bg-[#2d1102] top-[120px] z-10 shadow-inner"></div>
-                        {cols.map((c, i) => (
-                            <div key={i} className="relative w-16 h-96 bg-[#78350f] rounded-xl flex flex-col items-center">
-                                <div className="absolute w-1.5 h-full bg-slate-300 rounded-full"></div>
-                                <div className="h-28 w-full relative z-20 pt-4">
-                                    <div onClick={() => handleBead(i, 'upper', c.upper ? 0 : 1)} 
-                                         className={`w-14 h-9 rounded-full bead mx-auto ${c.upper ? 'translate-y-12 bg-blue-600' : 'bg-blue-400'}`}></div>
-                                </div>
-                                <div className="flex-grow w-grow relative z-20 mt-8">
-                                    {[1, 2, 3, 4].map(n => (
-                                        <div key={n} onClick={() => handleBead(i, 'lower', c.lower >= n ? n-1 : n)}
-                                             className={`w-14 h-9 rounded-full bead absolute left-1 ${c.lower >= n ? 'bg-orange-500 -translate-y-12' : 'bg-orange-300'}`}
-                                             style={{ top: `${(n-1)*40}px` }}></div>
-                                    ))}
-                                </div>
-                                <div className="absolute -bottom-12 bg-white px-4 py-1 rounded-full font-black text-indigo-900 shadow-md border-2 border-indigo-200">{c.upper * 5 + c.lower}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            );
-        };
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
