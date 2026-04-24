@@ -6,7 +6,7 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   return {
-    base: '/jupan/', // 깃허브 저장소 이름인 /jupan/ 경로를 기준으로 빌드합니다.
+    base: './', // 깃허브 페이지와 프리뷰 모두 호환되도록 상대 경로를 사용합니다.
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
