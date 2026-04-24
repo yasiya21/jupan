@@ -1,13 +1,147 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-  </head>
-  <body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주판 알고리즘 학습 - Standalone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Nanum Gothic', sans-serif; }
+        .bead-shadow { box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2); }
+        .abacus-frame { border: 8px solid #451a03; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-sky-50">
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
 
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Constants & Data ---
+        const INITIAL_COLUMNS = Array(7).fill(0).map(() => ({ upper: 0, lower: 0 }));
+
+        const LESSONS = [
+            {
+                title: '주판과 친해지기',
+                steps: [
+                    { text: '안녕! 오늘은 주판을 배워볼 거예요. 주판은 아주 오래된 계산기랍니다.' },
+                    { text: '위쪽 알은 5를, 아래쪽 알은 1을 의미해요. 아래 알 하나를 올려볼까요?', target: 1 }
+                ]
+            },
+            {
+                title: '덧셈 배우기',
+                steps: [
+                    { text: '2 + 2를 해봐요. 먼저 2를 놓고, 2를 더해보세요!', target: 4 }
+                ]
+            }
+        ];
+
+        // --- Components ---
+        function Abacus({ columns, onBeadClick, highlight }) {
+            return (
+                <div className="abacus-frame bg-amber-900 p-6 rounded-3xl shadow-2xl inline-block">
+                    <div className="flex gap-2 bg-amber-800 p-2 rounded-xl relative">
+                        {/* Divider Bar */}
+                        <div className="absolute left-0 right-0 h-4 bg-amber-950 z-10 shadow-inner top-[120px]"></div>
+                        
+                        {columns.map((col, i) => (
+                            <div key={i} className={`relative flex flex-col items-center w-16 h-[400px] ${highlight === i ? 'bg-white/10 rounded-lg' : ''}`}>
+                                <div className="absolute w-2 h-full bg-gray-400 rounded-full"></div>
+                                
+                                {/* Upper Bead */}
+                                <div className="h-[120px] relative w-full">
+                                    <div 
+                                        onClick={() => onBeadClick(i, 'upper', col.upper === 0 ? 1 : 0)}
+                                        className={`absolute w-14 h-8 bg-blue-500 rounded-full left-1 bead-shadow cursor-pointer transition-all duration-300 ${col.upper === 1 ? 'top-[80px]' : 'top-2'}`}
+                                    ></div>
+                                </div>
+
+                                {/* Lower Beads */}
+                                <div className="mt-4 relative w-full flex-grow">
+                                    {[0,1,2,3].map(bi => (
+                                        <div 
+                                            key={bi}
+                                            onClick={() => onBeadClick(i, 'lower', bi < col.lower ? bi : bi + 1)}
+                                            className={`absolute w-14 h-8 rounded-full left-1 bead-shadow cursor-pointer transition-all duration-300 ${bi < col.lower ? 'translate-y-[-40px]' : ''}`}
+                                            style={{ 
+                                                top: `${50 + bi * 45}px`,
+                                                backgroundColor: bi === 0 ? '#22c55e' : bi === 1 ? '#eab308' : bi === 2 ? '#f97316' : '#ef4444'
+                                            }}
+                                        ></div>
+                                    ))}
+                                </div>
+                                <div className="absolute -bottom-8 text-white font-bold text-xl">{col.upper * 5 + col.lower}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        function App() {
+            const [columns, setColumns] = useState(INITIAL_COLUMNS);
+            const [lessonIdx, setLessonIdx] = useState(0);
+            const [stepIdx, setStepIdx] = useState(0);
+            const [showSuccess, setShowSuccess] = useState(false);
+
+            const handleBeadClick = (col, type, val) => {
+                const next = [...columns];
+                next[col] = { ...next[col], [type]: val };
+                setColumns(next);
+                
+                const currentVal = next[col].upper * 5 + next[col].lower;
+                const target = LESSONS[lessonIdx].steps[stepIdx].target;
+                
+                if (target !== undefined && currentVal === target) {
+                    setShowSuccess(true);
+                    setTimeout(() => {
+                        setShowSuccess(false);
+                        if (stepIdx < LESSONS[lessonIdx].steps.length - 1) setStepIdx(s => s + 1);
+                    }, 1000);
+                }
+            };
+
+            return (
+                <div className="min-h-screen p-8 flex flex-col items-center">
+                    <header className="w-full max-w-4xl flex justify-between items-center mb-8 bg-white p-6 rounded-2xl shadow-sm">
+                        <h1 className="text-2xl font-black text-indigo-600">주판 알고리즘 Standalone</h1>
+                        <button onClick={() => { setColumns(INITIAL_COLUMNS); setLessonIdx(0); setStepIdx(0); }} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition">초기화</button>
+                    </header>
+
+                    <main className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-1 bg-white p-6 rounded-2xl shadow-md border-b-4 border-sky-100 h-fit">
+                            <h2 className="font-bold text-gray-700 mb-4">현재 학습: {LESSONS[lessonIdx].title}</h2>
+                            <p className="text-indigo-600 font-medium p-4 bg-indigo-50 rounded-xl leading-relaxed">
+                                {LESSONS[lessonIdx].steps[stepIdx].text}
+                            </p>
+                        </div>
+
+                        <div className="md:col-span-2 flex flex-col items-center">
+                            <div className="relative">
+                                <Abacus columns={columns} onBeadClick={handleBeadClick} />
+                                {showSuccess && (
+                                    <div className="absolute inset-0 flex items-center justify-center animate-bounce text-6xl pointer-events-none">
+                                        ✨🎉⭐
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
