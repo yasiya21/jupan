@@ -159,6 +159,7 @@ export default function App() {
     setCurrentLessonIdx(0);
     setCurrentStepIdx(0);
     setIsLessonComplete(false);
+    setShowConfetti(false);
     setColumns(INITIAL_COLUMNS);
   };
 
@@ -303,6 +304,7 @@ export default function App() {
                           setCurrentLessonIdx(idx);
                           setCurrentStepIdx(0);
                           setIsLessonComplete(false);
+                          setShowConfetti(false);
                           resetAbacus();
                         }}
                         className={`w-full text-left p-4 rounded-2xl transition-all ${
